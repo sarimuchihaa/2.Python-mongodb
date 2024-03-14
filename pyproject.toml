@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "57-mongodb"
+version = "0.1.0"
+description = ""
+authors = ["sarim <sarim1@gmail.com>"]
+readme = "README.md"
+packages = [{include = "57"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
