@@ -1,29 +1,39 @@
-from fastapi import FastAPI, HTTPException
-from pymongo import MongoClient
+from fastapi import APIRouter
+from models.user import User
+from config.db import conn
+from schemas.user import usersentity
+from bson import ObjectId
 
-app = FastAPI()
-
-# Initialize MongoDB connection
-client = MongoClient("mongodb://localhost:27017")
-db = client["students"]
-collection = db["boys"]
+user = APIRouter()
 
 
-@app.post("/students/")
-async def create_student(name: str, age: int):
-    # Insert student data into MongoDB
-    result = collection.insert_one({"name": name, "age": age})
-    if result.inserted_id:
-        return {"message": "Student created successfully"}
-    else:
-        raise HTTPException(status_code=500, detail="Failed to create student")
+@user.get('/')
+async def find_all_users():
+    print(conn.local.user.find())
+    print(usersentity(conn.local.user.find()))
+    return usersentity(conn.local.user.find())
 
 
-@app.get("/students/{student_id}")
-async def get_student(student_id: str):
-    # Retrieve student data from MongoDB
-    student = collection.find_one({"_id": student_id})
-    if student:
-        return student
-    else:
-        raise HTTPException(status_code=404, detail="Student not found")
+@user.get('/{id}')
+async def find_one_user(id):
+    return usersentity([conn.local.user.find_one({"_id": ObjectId(id)})])
+
+
+@user.post('/')
+async def create_user(user: User):
+    conn.local.user.insert_one(dict(user))
+    return usersentity(conn.local.user.find())
+
+
+@user.put('/{id}')
+async def update_user(id, user: User):
+    conn.local.user.find_one_and_update({"_id": ObjectId(id)}, {
+        "$set": dict(user)
+    })
+    return usersentity(conn.local.user.find_one({"_id": ObjectId(id)}))
+
+
+@user.delete('/{id}')
+async def delete_user(id, user: User):
+    return usersentity(conn.local.user.find_one_and_delete({"_id": ObjectId(id)}))
+
